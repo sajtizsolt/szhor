@@ -1,6 +1,6 @@
 package hu.elte.szhor.model;
 
-import hu.elte.szhor.utils.RobotState;
+import hu.elte.szhor.util.RobotState;
 import java.util.Objects;
 
 /**

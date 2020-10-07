@@ -1,4 +1,4 @@
-package hu.elte.szhor.utils;
+package hu.elte.szhor.util;
 
 /**
  * This enum represents the state of a robot in the swarm.
