@@ -46,8 +46,11 @@ public class Vertex {
      */
     public Set<Vertex> getNeighbours() {
         var resultSet = new HashSet<Vertex>();
-        for (var object : graph.outgoingEdgesOf(this)) {
-            resultSet.add(((Edge) object).getTargetVertex());
+        for (var edge : graph.outgoingEdgesOf(this)) {
+            resultSet.add(edge.getTargetVertex());
+        }
+        for (var edge : graph.incomingEdgesOf(this)) {
+            resultSet.add(edge.getTargetVertex());
         }
         return resultSet;
     }
@@ -62,6 +65,11 @@ public class Vertex {
             && Objects.equals(this.graph, other.graph)
             && this.mobileRobot.equals(other.mobileRobot)
             && this.settledRobot.equals(other.settledRobot);
+    }
+
+    @Override
+    public String toString() {
+        return this.label + " M=" + (this.mobileRobot != null ? this.mobileRobot.getId() : "#") + " S=" + (this.settledRobot != null ? this.settledRobot.getId() : "#");
     }
 
     /**

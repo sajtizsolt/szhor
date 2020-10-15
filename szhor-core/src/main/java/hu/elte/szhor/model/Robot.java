@@ -1,12 +1,17 @@
 package hu.elte.szhor.model;
 
 import hu.elte.szhor.util.RobotState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * This class represents an asynchronous mobile robot.
  */
-public class Robot {
+public class Robot implements Runnable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Robot.class);
 
     /**
      * The unique identifier of the instance.
@@ -24,6 +29,11 @@ public class Robot {
     private RobotState state;
 
     /**
+     * The chance with which the robot will crash when it moves.
+     */
+    private final int chanceOfCrash;
+
+    /**
      * The current location of the robot.
      */
     private Vertex currentLocation;
@@ -35,11 +45,15 @@ public class Robot {
 
     /**
      * The constructor of the class.
+     * @param startingLocation The starting location of the robot.
+     * @param chanceOfCrash The chance with which
      */
-    public Robot(Vertex startingLocation) {
+    public Robot(Vertex startingLocation, final float chanceOfCrash) {
         this.id = currentId++;
         this.state = RobotState.MOBILE;
         this.currentLocation = startingLocation;
+        this.currentLocation.setMobileRobot(this);
+        this.chanceOfCrash = (int) (100 * chanceOfCrash);
     }
 
     /**
@@ -53,44 +67,59 @@ public class Robot {
             // location, then attempt to move to that vertex
             if (vertex.getMobileRobot() == null && vertex.getSettledRobot() != null && vertex.getSettledRobot().markedLocation.equals(this.currentLocation)) {
                 if (hasCrashed()) {
+                    LOGGER.info("Robot with id {} crashed.", this.id);
                     return false;
                 }
                 this.moveTo(vertex);
-                System.out.println("(" + this.id + ") Moved to " + this.currentLocation.getLabel());
                 return true;
             }
             // If a neighbour of current location contains NO robot, then attempt to move to that vertex and settle
             // down while marking the previous location
             else if (vertex.getMobileRobot() == null && vertex.getSettledRobot() == null) {
                 if (hasCrashed()) {
+                    LOGGER.info("Robot with id {} crashed.", this.id);
                     return false;
                 }
                 this.moveToAndSettle(vertex);
-                System.out.println("(" + this.id + ") Moved and settled at " + this.currentLocation.getLabel());
                 return true;
             }
         }
         // Stay put
-        System.out.println("(" + this.id + ") Stayed at " + this.currentLocation.getLabel());
         return true;
     }
 
+    /**
+     * Returns true if the robot crashes.
+     * @return True if the robot crashes.
+     */
     private boolean hasCrashed() {
-        return false;
+        return ThreadLocalRandom.current().nextInt(0, 100) < this.chanceOfCrash;
     }
 
+    /**
+     * The robot leaves the current location and moves to the target location.
+     * @param targetLocation The new location of the robot.
+     */
     private void moveTo(Vertex targetLocation) {
         this.currentLocation.setMobileRobot(null);
         this.currentLocation = targetLocation;
         this.currentLocation.setMobileRobot(this);
+        LOGGER.info("Robot with id {} moved to new location: {}.", this.id, targetLocation.getLabel());
     }
 
+    /**
+     * The robot leaves the current location and moves to the target location.
+     * After moving, it settles down.
+     * @param targetLocation The new location of the robot.
+     */
     private void moveToAndSettle(Vertex targetLocation) {
-        this.currentLocation.setMobileRobot(null);
-        this.markedLocation = this.currentLocation;
+        var previousLocation = this.currentLocation;
+        this.markedLocation = previousLocation;
         this.currentLocation = targetLocation;
         this.currentLocation.setSettledRobot(this);
+        previousLocation.setMobileRobot(null);
         this.state = RobotState.SETTLED;
+        LOGGER.info("Robot with id {} moved and settled at new location: {}.", this.id, targetLocation.getLabel());
     }
 
     @Override
@@ -104,6 +133,33 @@ public class Robot {
             && Objects.equals(this.state, other.state);
     }
 
+    @Override
+    public void run() {
+        while (this.state == RobotState.MOBILE) {
+            try {
+                var time = (long) (ThreadLocalRandom.current().nextInt(0, 2) * 1000);
+                Thread.sleep(time);
+            } catch (InterruptedException e) {
+                LOGGER.info("Robot with id {} is interrupted!", this.id);
+                return;
+            }
+            this.action();
+        }
+        LOGGER.info("Robot with id {} finished!", this.id);
+    }
+
+    /**
+     * Returns the id of the robot.
+     * @return The id of the robot.
+     */
+    public int getId() {
+        return this.id;
+    }
+
+    /**
+     * Returns the state of the robot.
+     * @return The state of the robot.
+     */
     public RobotState getState() {
         return this.state;
     }

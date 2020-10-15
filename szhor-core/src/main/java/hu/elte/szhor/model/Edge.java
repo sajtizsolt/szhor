@@ -18,6 +18,11 @@ public class Edge extends DefaultEdge {
             && Objects.equals(this.getTargetVertex(), other.getTargetVertex());
     }
 
+    @Override
+    public String toString() {
+        return this.getSourceVertex().toString() + "   " + this.getTargetVertex().toString();
+    }
+
     /**
      * Returns the source vertex of the edge.
      * @return The source vertex.
