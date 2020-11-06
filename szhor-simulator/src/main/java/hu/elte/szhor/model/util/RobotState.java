@@ -1,4 +1,4 @@
-package hu.elte.szhor.utils;
+package hu.elte.szhor.model.util;
 
 public enum RobotState {
     MOBILE,

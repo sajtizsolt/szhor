@@ -1,4 +1,4 @@
-package hu.elte.szhor.utils;
+package hu.elte.szhor.model;
 
 import java.util.Objects;
 
@@ -36,11 +36,20 @@ public class Node {
 
         var other = (Node) object;
         return Objects.equals(this.x, other.x)
-                && Objects.equals(this.y, other.y);
+            && Objects.equals(this.y, other.y);
+    }
+
+    @Override
+    public String toString() {
+        return this.id + "[" + this.settledRobot + ";" + this.mobileRobot + "]";
     }
 
     public int getId() {
         return this.id;
+    }
+
+    public String getIdAsString() {
+        return String.valueOf(this.id);
     }
 
     public int getX() {
