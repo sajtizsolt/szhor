@@ -1,5 +1,6 @@
 package hu.elte.szhor.utils;
 
+import hu.elte.szhor.model.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Objects;

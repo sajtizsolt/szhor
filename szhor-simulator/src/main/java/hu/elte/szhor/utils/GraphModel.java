@@ -1,5 +1,6 @@
 package hu.elte.szhor.utils;
 
+import hu.elte.szhor.model.Node;
 import org.graphstream.graph.Graph;
 import java.io.BufferedReader;
 import java.io.FileReader;
