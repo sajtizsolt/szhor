@@ -3,20 +3,26 @@ package hu.elte.szhor.view;
 import hu.elte.szhor.model.Node;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.view.Viewer;
 
 import java.awt.*;
 
 public class MazeGraphDisplay {
 
+    private Viewer viewer;
     private final Graph graph;
 
     public MazeGraphDisplay() {
-        this.graph = new SingleGraph("Simulation of Fast Uniform Dispersion of a Crash-prone Swarm");;
+        this.graph = new SingleGraph("Simulation of Fast Uniform Dispersion of a Crash-prone Swarm");
         System.setProperty("org.graphstream.ui", "swing");
     }
 
     public void display() {
-        this.graph.display();
+        this.viewer = this.graph.display();
+    }
+
+    public void close() {
+        this.viewer.close();
     }
 
     public void addNode(final Node node) {

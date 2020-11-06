@@ -2,9 +2,8 @@ package hu.elte.szhor.controller.util;
 
 import hu.elte.szhor.model.MazeGraph;
 import hu.elte.szhor.model.Robot;
+import hu.elte.szhor.utils.Statistics;
 import hu.elte.szhor.view.MazeGraphDisplay;
-import org.graphstream.graph.Graph;
-
 import java.util.LinkedList;
 
 public class RobotController {
@@ -17,6 +16,7 @@ public class RobotController {
             var thread = new Thread(robot);
             threads.add(thread);
             thread.start();
+            Statistics.numberOfRobots++;
         }
         catch (Exception exception) {
             exception.printStackTrace();

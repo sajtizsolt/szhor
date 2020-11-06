@@ -3,8 +3,10 @@ package hu.elte.szhor;
 import hu.elte.szhor.controller.MazeGraphController;
 import hu.elte.szhor.model.util.MazeGraphBuilder;
 import hu.elte.szhor.utils.ArgumentHandler;
+import hu.elte.szhor.utils.Statistics;
 import hu.elte.szhor.view.MazeGraphDisplay;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class Main {
 
@@ -13,7 +15,7 @@ public class Main {
         ArgumentHandler.validate(arguments);
 
         // Create model
-        var model = MazeGraphBuilder.fromFile(ArgumentHandler.getFilename());
+        var model = MazeGraphBuilder.fromFile(ArgumentHandler.getInputFile());
 
         // Create display
         var view = new MazeGraphDisplay();
@@ -26,5 +28,9 @@ public class Main {
         controller.stopSimulation();
 
         // Save statistics
+        try (var writer = new PrintWriter(ArgumentHandler.getOutputFile())) {
+            writer.write(Statistics.getJsonString());
+            writer.flush();
+        }
     }
 }

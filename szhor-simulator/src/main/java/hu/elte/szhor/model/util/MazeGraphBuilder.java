@@ -2,6 +2,7 @@ package hu.elte.szhor.model.util;
 
 import hu.elte.szhor.model.MazeGraph;
 import hu.elte.szhor.model.Node;
+import hu.elte.szhor.utils.Statistics;
 import org.jetbrains.annotations.NotNull;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -34,6 +35,7 @@ public class MazeGraphBuilder {
                 rowIndex++;
             }
         }
+        Statistics.numberOfNodes = nodes.size();
         return nodes;
     }
 
@@ -45,12 +47,14 @@ public class MazeGraphBuilder {
                 var index = nodes.indexOf(rightNode);
                 adjacencyMatrix[node.getId()][index] = 1;
                 adjacencyMatrix[index][node.getId()] = 1;
+                Statistics.numberOfEdges++;
             }
             var downNode = Node.create(node.getX() + 1, node.getY());
             if (nodes.contains(downNode)) {
                 var index = nodes.indexOf(downNode);
                 adjacencyMatrix[node.getId()][index] = 1;
                 adjacencyMatrix[index][node.getId()] = 1;
+                Statistics.numberOfEdges++;
             }
         }
         return adjacencyMatrix;

@@ -1,11 +1,10 @@
 package hu.elte.szhor.model;
 
 import hu.elte.szhor.model.util.RobotState;
+import hu.elte.szhor.utils.Statistics;
 import hu.elte.szhor.view.MazeGraphDisplay;
-import org.graphstream.graph.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.awt.*;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
@@ -42,9 +41,11 @@ public class Robot implements Runnable {
             if (node.getMobileRobot() == null && node.getSettledRobot() != null && node.getSettledRobot().markedLocation.equals(this.currentLocation)) {
                 if (this.hasCrashed()) {
                     LOGGER.info("Robot with id {} crashed.", this.id);
+                    Statistics.numberOfCrashes++;
                     this.cleanUp();
                 }
                 this.moveTo(node);
+                Statistics.numberOfMoves++;
                 return;
             }
             // If a neighbour of current location contains NO robot, then attempt to move to that node and settle
@@ -52,9 +53,11 @@ public class Robot implements Runnable {
             else if (!node.equals(this.graph.getSourceNode()) && node.getMobileRobot() == null && node.getSettledRobot() == null) {
                 if (this.hasCrashed()) {
                     LOGGER.info("Robot with id {} crashed.", this.id);
+                    Statistics.numberOfCrashes++;
                     this.cleanUp();
                 }
                 this.moveToAndSettle(node);
+                Statistics.numberOfMoves++;
                 return;
             }
         }
