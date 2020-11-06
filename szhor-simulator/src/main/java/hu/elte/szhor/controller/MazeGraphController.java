@@ -1,22 +1,40 @@
 package hu.elte.szhor.controller;
 
+import hu.elte.szhor.controller.util.RobotController;
 import hu.elte.szhor.model.MazeGraph;
 import hu.elte.szhor.model.Node;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.implementations.SingleGraph;
+import hu.elte.szhor.utils.ArgumentHandler;
+import hu.elte.szhor.view.MazeGraphDisplay;
 import java.awt.Color;
 
 public class MazeGraphController {
 
     private final MazeGraph model;
-    private final Graph display;
+    private final MazeGraphDisplay display;
 
-    public MazeGraphController(final MazeGraph model) {
+    public MazeGraphController(final MazeGraph model, final MazeGraphDisplay display) {
         this.model = model;
-        this.display = new SingleGraph("Simulation of Fast Uniform Dispersion of a Crash-prone Swarm");
-        System.setProperty("org.graphstream.ui", "swing");
+        this.display = display;
         this.setUpDisplayedGraph();
         this.display.display();
+    }
+
+    public void startSimulation() throws InterruptedException {
+        while (!this.model.isEveryNodeOccupied()) {
+            this.waitForOtherThreads();
+            if (this.model.getSourceNode().getMobileRobot() != null) {
+                continue;
+            }
+            RobotController.startNewRobot(this.model, this.display, ArgumentHandler.getChanceOfCrash());
+        }
+    }
+
+    public void stopSimulation() {
+        RobotController.interruptAllRobots();
+    }
+
+    private void waitForOtherThreads() throws InterruptedException {
+        Thread.sleep(500);
     }
 
     private void setUpDisplayedGraph() {
@@ -27,8 +45,7 @@ public class MazeGraphController {
 
     private void addNodes() {
         for (var node : this.model.getNodes()) {
-            var displayedNode = this.display.addNode(node.getIdAsString());
-            displayedNode.setAttribute("ui.label", node.toString());
+            this.display.addNode(node);
         }
     }
 
@@ -37,13 +54,13 @@ public class MazeGraphController {
         for (var node : this.model.getNodes()) {
             for (var neighbour : this.model.getNeighbours(node)) {
                 if (node.getId() < neighbour.getId()) {
-                    this.display.addEdge(String.valueOf(edgeId++), node.getIdAsString(), neighbour.getIdAsString());
+                    this.display.addEdge(String.valueOf(edgeId++), node, neighbour);
                 }
             }
         }
     }
 
     private void setColor(final Node node, final Color color) {
-        this.display.getNode(node.getIdAsString()).setAttribute("ui.style", "fill-color: rgb(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + ");");
+        this.display.setColor(node, color);
     }
 }

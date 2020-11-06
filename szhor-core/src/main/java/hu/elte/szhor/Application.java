@@ -1,10 +1,6 @@
 package hu.elte.szhor;
 
-import hu.elte.szhor.model.Robot;
 import hu.elte.szhor.util.GraphBuilderHelper;
-import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.ui.view.Viewer;
-import org.jgrapht.Graph;
 
 import java.util.*;
 

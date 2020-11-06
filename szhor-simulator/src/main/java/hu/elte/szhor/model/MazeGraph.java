@@ -1,6 +1,5 @@
 package hu.elte.szhor.model;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,5 +31,14 @@ public class MazeGraph {
             }
         }
         return neighbours;
+    }
+
+    public boolean isEveryNodeOccupied() {
+        for (var node : this.nodes) {
+            if (!node.equals(this.sourceNode) && node.getSettledRobot() == null) {
+                return false;
+            }
+        }
+        return true;
     }
 }

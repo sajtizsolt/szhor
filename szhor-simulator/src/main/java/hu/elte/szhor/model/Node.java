@@ -1,6 +1,5 @@
 package hu.elte.szhor.model;
 
-import hu.elte.szhor.utils.Robot;
 import java.util.Objects;
 
 public class Node {
