@@ -1,7 +1,11 @@
-package hu.elte.szhor.utils;
+package hu.elte.szhor.model;
 
+import hu.elte.szhor.model.util.RobotState;
+import hu.elte.szhor.utils.Statistics;
+import hu.elte.szhor.view.MazeGraphDisplay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.awt.*;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -11,21 +15,23 @@ public class Robot implements Runnable {
 
     private static int currentId = 0;
 
-    private final GraphModel graph;
     private final int id;
     private final int chanceOfCrash;
+    private final MazeGraph graph;
+    private final MazeGraphDisplay display;
 
     private RobotState state;
     private Node currentLocation;
     private Node markedLocation;
 
-    public Robot(GraphModel graph, Node startingLocation, final float chanceOfCrash) {
+    public Robot(final MazeGraph graph, final MazeGraphDisplay display, final int chanceOfCrash) {
         this.id = currentId++;
         this.graph = graph;
+        this.display = display;
         this.state = RobotState.MOBILE;
-        this.currentLocation = startingLocation;
+        this.currentLocation = this.graph.getSourceNode();
         this.currentLocation.setMobileRobot(this);
-        this.chanceOfCrash = (int) (100 * chanceOfCrash);
+        this.chanceOfCrash = chanceOfCrash;
     }
 
     public void action() {
@@ -35,18 +41,24 @@ public class Robot implements Runnable {
             if (node.getMobileRobot() == null && node.getSettledRobot() != null && node.getSettledRobot().markedLocation.equals(this.currentLocation)) {
                 if (this.hasCrashed()) {
                     LOGGER.info("Robot with id {} crashed.", this.id);
+                    Statistics.numberOfCrashes++;
                     this.cleanUp();
                 }
                 this.moveTo(node);
+                Statistics.numberOfMoves++;
+                return;
             }
             // If a neighbour of current location contains NO robot, then attempt to move to that node and settle
             // down while marking the previous location
-            else if (!node.equals(this.graph.getSource()) && node.getMobileRobot() == null && node.getSettledRobot() == null) {
+            else if (!node.equals(this.graph.getSourceNode()) && node.getMobileRobot() == null && node.getSettledRobot() == null) {
                 if (this.hasCrashed()) {
                     LOGGER.info("Robot with id {} crashed.", this.id);
+                    Statistics.numberOfCrashes++;
                     this.cleanUp();
                 }
                 this.moveToAndSettle(node);
+                Statistics.numberOfMoves++;
+                return;
             }
         }
     }
@@ -57,29 +69,29 @@ public class Robot implements Runnable {
 
     private void moveTo(Node targetLocation) {
         this.currentLocation.setMobileRobot(null);
-        this.graph.refreshAll();
+        this.setColor(this.currentLocation);
         this.currentLocation = targetLocation;
         this.currentLocation.setMobileRobot(this);
         LOGGER.info("Robot with id {} moved to new location: {}.", this.id, targetLocation.getId());
-        this.graph.refreshAll();
+        this.setColor(this.currentLocation);
     }
 
     private void moveToAndSettle(Node targetLocation) {
         var previousLocation = this.currentLocation;
         this.markedLocation = previousLocation;
+        this.setColor(previousLocation);
         this.currentLocation = targetLocation;
         this.currentLocation.setSettledRobot(this);
         previousLocation.setMobileRobot(null);
         this.state = RobotState.SETTLED;
         LOGGER.info("Robot with id {} moved and settled at new location: {}.", this.id, targetLocation.getId());
-        this.graph.refreshAll();
+        this.setColor(this.currentLocation);
     }
 
     private void cleanUp() {
-        this.graph.refreshAll();
         this.currentLocation.setMobileRobot(null);
+        this.setColor(this.currentLocation);
         this.state = RobotState.CRASHED;
-        this.graph.refreshAll();
         Thread.currentThread().interrupt();
     }
 
@@ -91,7 +103,7 @@ public class Robot implements Runnable {
 
         var other = (Robot) object;
         return Objects.equals(this.id, other.id)
-            && Objects.equals(this.state, other.state);
+                && Objects.equals(this.state, other.state);
     }
 
     @Override
@@ -121,5 +133,20 @@ public class Robot implements Runnable {
 
     public int getId() {
         return this.id;
+    }
+
+    private void setColor(final Node node) {
+        if (node.equals(this.graph.getSourceNode())) {
+            this.display.setColor(node, Color.BLUE);
+        }
+        else if (node.getMobileRobot() == null && node.getSettledRobot() == null) {
+            this.display.setColor(node, Color.BLACK);
+        }
+        else if (node.getMobileRobot() == null && node.getSettledRobot() != null) {
+            this.display.setColor(node, Color.GREEN);
+        }
+        else if (node.getMobileRobot() != null && node.getSettledRobot() != null) {
+            this.display.setColor(node, Color.RED);
+        }
     }
 }
