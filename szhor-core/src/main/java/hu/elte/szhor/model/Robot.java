@@ -31,8 +31,9 @@ public class Robot implements Runnable {
             // If a neighbour of current location contains exactly ONE robot, and this robot marks the current
             // location, then attempt to move to that vertex
             if (vertex.getMobileRobot() == null && vertex.getSettledRobot() != null && vertex.getSettledRobot().markedLocation.equals(this.currentLocation)) {
-                if (hasCrashed()) {
+                if (this.hasCrashed()) {
                     LOGGER.info("Robot with id {} crashed.", this.id);
+                    this.cleanUp();
                     return false;
                 }
                 this.moveTo(vertex);
@@ -41,8 +42,9 @@ public class Robot implements Runnable {
             // If a neighbour of current location contains NO robot, then attempt to move to that vertex and settle
             // down while marking the previous location
             else if (vertex.getMobileRobot() == null && vertex.getSettledRobot() == null) {
-                if (hasCrashed()) {
+                if (this.hasCrashed()) {
                     LOGGER.info("Robot with id {} crashed.", this.id);
+                    this.cleanUp();
                     return false;
                 }
                 this.moveToAndSettle(vertex);
@@ -72,6 +74,11 @@ public class Robot implements Runnable {
         previousLocation.setMobileRobot(null);
         this.state = RobotState.SETTLED;
         LOGGER.info("Robot with id {} moved and settled at new location: {}.", this.id, targetLocation.getLabel());
+    }
+
+    private void cleanUp() {
+        this.currentLocation.setMobileRobot(null);
+        this.state = RobotState.CRASHED;
     }
 
     @Override

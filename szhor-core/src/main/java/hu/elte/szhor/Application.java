@@ -2,13 +2,17 @@ package hu.elte.szhor;
 
 import hu.elte.szhor.model.Robot;
 import hu.elte.szhor.util.GraphBuilderHelper;
+import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.view.Viewer;
+import org.jgrapht.Graph;
+
 import java.util.*;
 
 public class Application {
 
     public static void main(String[] arguments) throws InterruptedException {
         var graph = GraphBuilderHelper.buildEmptySimpleGraph();
-        var sourceVertex = GraphBuilderHelper.fillGraph(graph, 3, 10);
+        var sourceVertex = GraphBuilderHelper.fillGraph(graph, 3, 100);
         var threads = new ArrayList<Thread>();
         while (true) {
             Thread.sleep(1000);
