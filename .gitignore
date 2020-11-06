@@ -96,3 +96,9 @@ fabric.properties
 
 # IML files
 *.iml
+
+# Every IntelliJ stuff
+.idea/
+
+# Java stuff
+target/

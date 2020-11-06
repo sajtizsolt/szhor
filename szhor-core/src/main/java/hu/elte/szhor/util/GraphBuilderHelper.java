@@ -10,30 +10,18 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Contains useful methods for creating and modifying JGraphT graphs.
- */
 public class GraphBuilderHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphBuilderHelper.class);
 
-    /**
-     * Creates an empty, undirected graph.
-     * @return The empty graph.
-     */
     public static Graph<Vertex, Edge> buildEmptySimpleGraph() {
         return GraphTypeBuilder
                 .<Vertex, Edge> undirected().allowingMultipleEdges(false)
                 .allowingSelfLoops(false).edgeClass(Edge.class).weighted(false).buildGraph();
     }
 
-    /**
-     * Fills an empty graph with vertices and edges, creating a complete graph.
-     * @param graph The empty graph object.
-     * @param origin The minimum number of vertices.
-     * @param bound The maximum number of vertices.
-     * @return The source vertex of the graph.
-     */
+
+
     public static Vertex fillGraph(Graph<Vertex, Edge> graph, final int origin, final int bound) {
         final var vertexCount = ThreadLocalRandom.current().nextInt(origin, bound);
         LOGGER.info("Graph size: {}", vertexCount);
@@ -61,5 +49,30 @@ public class GraphBuilderHelper {
         var source = vertices.get(ThreadLocalRandom.current().nextInt(0, vertexCount));
         LOGGER.info("Graph filled. Source vertex: {}", source);
         return source;
+    }
+
+    public static Graph<Vertex, Edge> getGraph(final int size) {
+        var graph = buildEmptySimpleGraph();
+        var matrix = new Vertex[size][size];
+
+        for (var i = 0; i < size; ++i) {
+            for (var j = 0; j < size; ++j) {
+                matrix[i][j] = new Vertex(graph, UUID.randomUUID().toString());
+                graph.addVertex(matrix[i][j]);
+            }
+        }
+
+        for (var i = 0; i < size; ++i) {
+            for (var j = 0; j < size; ++j) {
+                if (i < size - 1) {
+                    graph.addEdge(matrix[i][j], matrix[i + 1][j]);
+                }
+                if (j < size - 1) {
+                    graph.addEdge(matrix[i][j], matrix[i][j + 1]);
+                }
+            }
+        }
+
+        return graph;
     }
 }
