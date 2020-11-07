@@ -69,28 +69,28 @@ public class Robot implements Runnable {
 
     private void moveTo(Node targetLocation) {
         this.currentLocation.setMobileRobot(null);
-        this.setColor(this.currentLocation);
+        this.refreshDisplay(this.currentLocation);
         this.currentLocation = targetLocation;
         this.currentLocation.setMobileRobot(this);
         LOGGER.info("Robot with id {} moved to new location: {}.", this.id, targetLocation.getId());
-        this.setColor(this.currentLocation);
+        this.refreshDisplay(this.currentLocation);
     }
 
     private void moveToAndSettle(Node targetLocation) {
         var previousLocation = this.currentLocation;
         this.markedLocation = previousLocation;
-        this.setColor(previousLocation);
+        this.refreshDisplay(previousLocation);
         this.currentLocation = targetLocation;
         this.currentLocation.setSettledRobot(this);
         previousLocation.setMobileRobot(null);
         this.state = RobotState.SETTLED;
         LOGGER.info("Robot with id {} moved and settled at new location: {}.", this.id, targetLocation.getId());
-        this.setColor(this.currentLocation);
+        this.refreshDisplay(this.currentLocation);
     }
 
     private void cleanUp() {
         this.currentLocation.setMobileRobot(null);
-        this.setColor(this.currentLocation);
+        this.refreshDisplay(this.currentLocation);
         this.state = RobotState.CRASHED;
         Thread.currentThread().interrupt();
     }
@@ -115,8 +115,6 @@ public class Robot implements Runnable {
     public void run() {
         while (this.state == RobotState.MOBILE) {
             try {
-                //var time = (long) (ThreadLocalRandom.current().nextInt(0, 2) * 1000);
-                //Thread.sleep(time);
                 synchronized (this.graph) {
                     this.action();
                 }
@@ -135,7 +133,7 @@ public class Robot implements Runnable {
         return this.id;
     }
 
-    private void setColor(final Node node) {
+    private void refreshDisplay(final Node node) {
         if (node.equals(this.graph.getSourceNode())) {
             this.display.setColor(node, Color.BLUE);
         }
@@ -148,5 +146,6 @@ public class Robot implements Runnable {
         else if (node.getMobileRobot() != null && node.getSettledRobot() != null) {
             this.display.setColor(node, Color.RED);
         }
+        this.display.setLabel(node);
     }
 }
