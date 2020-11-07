@@ -4,7 +4,6 @@ import hu.elte.szhor.controller.util.RobotController;
 import hu.elte.szhor.model.MazeGraph;
 import hu.elte.szhor.utils.ArgumentHandler;
 import hu.elte.szhor.view.MazeGraphDisplay;
-import java.awt.Color;
 
 public class MazeGraphController {
 
@@ -39,7 +38,6 @@ public class MazeGraphController {
     private void setUpDisplayedGraph() {
         this.addNodes();
         this.addEdgesBetweenNodes();
-        this.display.setColor(this.model.getSourceNode(), Color.BLUE);
     }
 
     private void addNodes() {

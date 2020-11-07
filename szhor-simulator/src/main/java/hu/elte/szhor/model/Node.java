@@ -41,7 +41,7 @@ public class Node {
 
     @Override
     public String toString() {
-        return this.id + "[" + this.settledRobot + ";" + this.mobileRobot + "]";
+        return this.id + "[" + (this.settledRobot == null ? "-" : this.settledRobot) + ";" + (this.mobileRobot == null ? "-" : this.mobileRobot) + "]";
     }
 
     public int getId() {
