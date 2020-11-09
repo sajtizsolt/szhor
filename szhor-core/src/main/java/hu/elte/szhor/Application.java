@@ -1,5 +1,6 @@
 package hu.elte.szhor;
 
+import hu.elte.szhor.model.Robot;
 import hu.elte.szhor.util.GraphBuilderHelper;
 
 import java.util.*;
