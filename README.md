@@ -20,3 +20,11 @@ java -cp szhor-simulator/target/szhor-simulator-<version>-jar-with-dependencies.
 ```
 
 The results will be in the output file.
+
+## How to generate a custom maze
+
+```sh
+git clone https://github.com/sajtizsolt/szhor
+cd szhor
+mvn clean install
+java -cp maze-generator/target/maze-generator-<version>-jar-with-dependencies.jar hu.elte.szhor.GeneratorApp --input <maze-filepath> --rows <number-of-rows> --columns <number-of-columns>
