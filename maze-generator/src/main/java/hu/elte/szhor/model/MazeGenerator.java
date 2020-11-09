@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class MazeGenerator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(hu.elte.szhor.model.MazeGenerator.class);
+    //private static final Logger LOGGER = LoggerFactory.getLogger(hu.elte.szhor.model.MazeGenerator.class);
 
     private final int maxRow;
     private final int maxColumn;
@@ -41,7 +41,8 @@ public class MazeGenerator {
             List<Coordinate> availableCoordinates = new ArrayList<>();
             List<Coordinate> nodeCoordinates = new ArrayList<>();
 
-            LOGGER.info("Generating maze with {} rows and {} columns.", maxRow, maxColumn);
+            //LOGGER.info("Generating maze with {} rows and {} columns.", maxRow, maxColumn);
+            System.out.println("Generating maze with " + maxRow + "rows and" + maxColumn + " columns.");
 
             for(int i = 0; i < maxRow ; ++i){
                 for(int j = 0; j < maxColumn; ++j){
@@ -52,15 +53,18 @@ public class MazeGenerator {
                     }
                 }
             }
-            LOGGER.info("Created frame.");
+            //LOGGER.info("Created frame.");
+            System.out.println("Created frame.");
 
-            LOGGER.info("Generating random nodes inside the frame: ");
+            //LOGGER.info("Generating random nodes inside the frame: ");
+            System.out.println("Generating random nodes inside the frame.");
             var difference = nodeNumber - nodeCoordinates.size();
             for(int i = 0; i < difference; ++i){
                 var generatedNodeCoordinate = getRandomNumberInRange(0, availableCoordinates.size() - 1);
-                LOGGER.info("\t Adding random node ({}, {})",
+                /*LOGGER.info("\t Adding random node ({}, {})",
                         availableCoordinates.get(generatedNodeCoordinate).rowIndex,
-                        availableCoordinates.get(generatedNodeCoordinate).columnIndex);
+                        availableCoordinates.get(generatedNodeCoordinate).columnIndex);*/
+                System.out.println("Adding random node. ");
                 nodeCoordinates.add(availableCoordinates.get(generatedNodeCoordinate));
                 availableCoordinates.remove(generatedNodeCoordinate);
             }
@@ -70,38 +74,39 @@ public class MazeGenerator {
                 int currentColumn = nodeCoordinates.get(i).columnIndex;
 
                 if(isIsolated(nodeCoordinates.get(i), nodeCoordinates)){
-                    LOGGER.info("Node with coordinates ({}, {}) is isolated!", currentRow, currentColumn);
+                    //LOGGER.info("Node with coordinates ({}, {}) is isolated!", currentRow, currentColumn);
+                    System.out.println("Isolated node!");
                     var nearestNeighbour = findNearestNeighbour(nodeCoordinates.get(i), nodeCoordinates);
-                    LOGGER.info("The nearest neighbour for ({}, {}) is: ({}, {}).",
+                    /*LOGGER.info("The nearest neighbour for ({}, {}) is: ({}, {}).",
                             currentRow, currentColumn,
                             nearestNeighbour.rowIndex, nearestNeighbour.columnIndex
-                    );
+                    );*/
 
-                    LOGGER.info("Creating path from ({}, {}) to ({}, {}):",
+                    /*LOGGER.info("Creating path from ({}, {}) to ({}, {}):",
                             currentRow, currentColumn,
                             nearestNeighbour.rowIndex, nearestNeighbour.columnIndex
-                    );
+                    );*/
                     if(nearestNeighbour.columnIndex == currentColumn && nearestNeighbour.rowIndex < currentRow){
                         for(int j = currentRow - 1; j > nearestNeighbour.rowIndex; --j){
-                            LOGGER.info("\t Adding node ({}, {})", j, currentColumn);
+                            //LOGGER.info("\t Adding node ({}, {})", j, currentColumn);
                             nodeCoordinates.add(new Coordinate(j, currentColumn));
                             availableCoordinates.remove(new Coordinate(j, currentColumn));
                         }
                     } else if(nearestNeighbour.columnIndex == currentColumn && nearestNeighbour.rowIndex > currentRow){
                         for(int j = currentRow + 1; j < nearestNeighbour.rowIndex; ++j){
-                            LOGGER.info("\t Adding node ({}, {})", j, currentColumn);
+                            //LOGGER.info("\t Adding node ({}, {})", j, currentColumn);
                             nodeCoordinates.add(new Coordinate(j, currentColumn));
                             availableCoordinates.remove(new Coordinate(j, currentColumn));
                         }
                     } else if(nearestNeighbour.rowIndex == currentRow && nearestNeighbour.columnIndex < currentColumn){
                         for(int j = currentColumn - 1; j > nearestNeighbour.columnIndex; --j){
-                            LOGGER.info("\t Adding node ({}, {})", currentRow, j);
+                            //LOGGER.info("\t Adding node ({}, {})", currentRow, j);
                             nodeCoordinates.add(new Coordinate(currentRow, j));
                             availableCoordinates.remove(new Coordinate(currentRow, j));
                         }
                     } else if(nearestNeighbour.rowIndex == currentRow && nearestNeighbour.columnIndex > currentColumn){
                         for(int j = currentColumn + 1; j < nearestNeighbour.columnIndex; ++j){
-                            LOGGER.info("\t Adding node ({}, {})", currentRow, j);
+                            //LOGGER.info("\t Adding node ({}, {})", currentRow, j);
                             nodeCoordinates.add(new Coordinate(currentRow, j));
                             availableCoordinates.remove(new Coordinate(currentRow, j));
                         }
@@ -111,7 +116,8 @@ public class MazeGenerator {
                 }
             }
 
-            LOGGER.info("Writing maze to file ...");
+            //LOGGER.info("Writing maze to file ...");
+            System.out.println("Writing maze to file...");
             for(int i = 0; i < maxRow; ++i) {
                 String line = "";
                 for(int j = 0; j < maxColumn; ++j){
@@ -123,8 +129,9 @@ public class MazeGenerator {
                     bufferedWriter.newLine();
             }
 
-            LOGGER.info("Successfully generated the custom maze!");
-            LOGGER.info("Path to file: {}", filePath);
+            //LOGGER.info("Successfully generated the custom maze!");
+            //LOGGER.info("Path to file: {}", filePath);
+            System.out.println("Successfully generated the custom maze!");
         }
         catch (Exception exception) {
             exception.printStackTrace();
