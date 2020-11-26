@@ -7,16 +7,16 @@ import java.nio.file.StandardOpenOption;
 
 public class Statistics {
 
-    public static int executionTime;
-    public static float chanceOfCrash;
-    public static int numberOfSources;
+    public static int executionTime = 0;
+    public static float chanceOfCrash = 0;
+    public static int numberOfSources = 0;
 
-    public static int numberOfNodes;
-    public static int numberOfEdges;
+    public static int numberOfNodes = 0;
+    public static int numberOfEdges = 0;
 
-    public static int numberOfRobots;
-    public static int numberOfMoves;
-    public static int numberOfCrashes;
+    public static int numberOfRobots = 0;
+    public static int numberOfMoves = 0;
+    public static int numberOfCrashes = 0;
 
     public static void saveToFile(final String filepath) throws IOException {
         if (!Files.exists(Path.of(filepath))) {

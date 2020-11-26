@@ -26,9 +26,7 @@ public class MazeGraphController {
         while (!this.model.isEveryNodeOccupied()) {
             for (var robot : activeRobots) {
                 Thread.sleep(ArgumentHandler.getThreadWait());
-                var previousLocation = robot.getCurrentLocation();
-                robot.tryToMove();
-                //this.display.refreshNode(previousLocation);
+                robot.action();
                 this.display.refreshNode(robot.getCurrentLocation());
             }
 

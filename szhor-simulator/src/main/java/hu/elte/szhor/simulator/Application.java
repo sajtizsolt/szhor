@@ -16,22 +16,22 @@ public class Application {
         ArgumentHandler.validate(arguments);
 
         final var graph = GraphBuilder.fromFile(ArgumentHandler.getInputFile(), ArgumentHandler.getNumberOfSources());
-        final var activeRobots = new LinkedList<Robot>();
 
-        startSimulation(graph, activeRobots);
+        startSimulation(graph);
 
         Statistics.saveToFile(ArgumentHandler.getOutputFile());
     }
 
-    private static void startSimulation(final Graph graph, final LinkedList<Robot> activeRobots) {
+    private static void startSimulation(final Graph graph) {
+        final var activeRobots = new LinkedList<Robot>();
         Statistics.executionTime = 0;
         while (!graph.isEveryNodeOccupied()) {
             for (var robot : activeRobots) {
-                robot.tryToMove();
+                robot.action();
             }
 
             activeRobots.removeIf(
-                    robot -> robot.getState().equals(RobotState.SETTLED) || robot.getState().equals(RobotState.CRASHED)
+                robot -> robot.getState().equals(RobotState.SETTLED) || robot.getState().equals(RobotState.CRASHED)
             );
 
             for (var sourceNode : graph.getSourceNodes()) {

@@ -8,6 +8,8 @@ import java.util.Random;
 
 public class Robot {
 
+    private static final Random RANDOM_GENERATOR = new Random();
+
     private static int currentId = 0;
 
     private final int id;
@@ -28,52 +30,16 @@ public class Robot {
         this.chanceOfCrash = chanceOfCrash;
     }
 
-    public void tryToMove() {
+    public void action() {
         if (!this.state.equals(RobotState.MOBILE)) {
             return;
         }
-        if (this.graph.getSourceNodes().contains(this.currentLocation)) {
-            this.takeFirstStep();
-        }
-        else {
-            this.action();
-        }
-    }
-
-    public void action() {
-        for (var node : this.graph.getNeighbours(this.currentLocation)) {
-            // If a neighbour of current location contains exactly ONE robot, and this robot marks the current
-            // location, then attempt to move to that node
-            if (node.getMobileRobot() == null && node.getSettledRobot() != null && node.getSettledRobot().markedLocation.equals(this.currentLocation)) {
-                if (this.hasCrashed()) {
-                    this.cleanUp();
-                }
-                else {
-                    this.moveTo(node);
-                }
-                break;
-            }
-            // If a neighbour of current location contains NO robot, then attempt to move to that node and settle
-            // down while marking the previous location
-            else if (!this.graph.getSourceNodes().contains(node) && node.getMobileRobot() == null && node.getSettledRobot() == null) {
-                if (this.hasCrashed()) {
-                    this.cleanUp();
-                }
-                else {
-                    this.moveToAndSettle(node);
-                }
-                break;
-            }
-        }
-    }
-
-    public void takeFirstStep() {
-        var success = false;
         var neighbours = this.graph.getNeighbours(this.currentLocation);
-        while (!success) {
-            var node = neighbours.get(new Random().nextInt(neighbours.size()));
-            // If a neighbour of current location contains exactly ONE robot, and this robot marks the current
-            // location, then attempt to move to that node
+        while (true) {
+            if (neighbours.isEmpty()) {
+                return;
+            }
+            var node = neighbours.remove(new Random().nextInt(neighbours.size()));
             if (node.getMobileRobot() == null && node.getSettledRobot() != null && node.getSettledRobot().markedLocation.equals(this.currentLocation)) {
                 if (this.hasCrashed()) {
                     this.cleanUp();
@@ -81,10 +47,8 @@ public class Robot {
                 else {
                     this.moveTo(node);
                 }
-                success = true;
+                return;
             }
-            // If a neighbour of current location contains NO robot, then attempt to move to that node and settle
-            // down while marking the previous location
             else if (!this.graph.getSourceNodes().contains(node) && node.getMobileRobot() == null && node.getSettledRobot() == null) {
                 if (this.hasCrashed()) {
                     this.cleanUp();
@@ -92,13 +56,13 @@ public class Robot {
                 else {
                     this.moveToAndSettle(node);
                 }
-                success = true;
+                return;
             }
         }
     }
 
     private boolean hasCrashed() {
-        return new Random().nextInt(100) < this.chanceOfCrash;
+        return RANDOM_GENERATOR.nextInt(100) < this.chanceOfCrash;
     }
 
     private void moveTo(final Node targetLocation) {
