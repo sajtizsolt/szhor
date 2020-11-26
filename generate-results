@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Generates test results based on given parameters.
+
+# Globals
+readonly INPUT_FILE="$1"
+readonly OUTPUT_FILE="$2"
+readonly SOURCE_NUMBER="$3"
+readonly CHANCE_OF_CRASH="$4"
+readonly SIMULATION_COUNT="$5"
+
+# Clean and build project
+mvn clean install
+
+# Run project SIMULATION_COUNT times
+counter=1
+while [ $counter -le "${SIMULATION_COUNT}" ]
+do
+  echo "[$(date)]: Simulation started with id #${counter}"
+  java -cp szhor-simulator/target/szhor-simulator-1.0-SNAPSHOT-jar-with-dependencies.jar hu.elte.szhor.simulator.Application --input "${INPUT_FILE}" --output "${OUTPUT_FILE}" --number-of-sources "${SOURCE_NUMBER}" --chance-of-crash "${CHANCE_OF_CRASH}"
+  ((counter++))
+done

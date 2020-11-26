@@ -4,9 +4,10 @@ public class ArgumentHandler {
 
     private static String inputFile;
     private static String outputFile;
-    private static int numberOfSources;
-    private static int chanceOfCrash;
+    private static int numberOfSources = 1;
+    private static int chanceOfCrash = 0;
     private static int threadWait = 100;
+    private static int size = 4;
 
     public static void validate(final String[] arguments) throws IllegalArgumentException {
         var i = 0;
@@ -17,6 +18,7 @@ public class ArgumentHandler {
                 case "--number-of-sources" -> numberOfSources = Integer.parseInt(arguments[++i]);
                 case "--chance-of-crash" -> chanceOfCrash = (int) (100 * Float.parseFloat(arguments[++i]));
                 case "--thread-wait" -> threadWait = Integer.parseInt(arguments[++i]);
+                case "--size" -> size = Integer.parseInt(arguments[++i]);
                 default -> throw new IllegalArgumentException("Unknown argument: " + arguments[i] + ".");
             }
             ++i;
@@ -43,5 +45,9 @@ public class ArgumentHandler {
 
     public static int getThreadWait() {
         return threadWait;
+    }
+
+    public static int getSize() {
+        return size;
     }
 }

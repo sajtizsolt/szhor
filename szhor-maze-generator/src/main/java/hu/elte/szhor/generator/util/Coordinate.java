@@ -1,8 +1,9 @@
-package hu.elte.szhor.core.util;
+package hu.elte.szhor.generator.util;
 
 import java.util.Objects;
 
 public class Coordinate {
+
     public int rowIndex;
     public int columnIndex;
 
@@ -19,6 +20,6 @@ public class Coordinate {
 
         var other = (Coordinate) object;
         return Objects.equals(this.rowIndex, other.rowIndex)
-                && Objects.equals(this.columnIndex, other.columnIndex);
+            && Objects.equals(this.columnIndex, other.columnIndex);
     }
 }

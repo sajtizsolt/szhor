@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Runs visual representation. Opens a window.
+
+# Globals
+readonly INPUT_FILE="$1"
+readonly SOURCE_NUMBER="$2"
+readonly CHANCE_OF_CRASH="$3"
+readonly THREAD_TIME="$4"
+
+# Clean and build project
+mvn clean install
+
+# Run project
+java -cp szhor-visualizer/target/szhor-visualizer-1.0-SNAPSHOT-jar-with-dependencies.jar hu.elte.szhor.visualizer.Application --input "${INPUT_FILE}" --number-of-sources "${SOURCE_NUMBER}" --chance-of-crash "${CHANCE_OF_CRASH}" --thread-wait "${THREAD_TIME}"

@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Generates a maze. That's all.
+
+# Globals
+readonly OUTPUT_FILE="$1"
+readonly SIZE="$2"
+
+# Clean and build project
+mvn clean install
+
+# Run project
+java -cp szhor-maze-generator/target/szhor-maze-generator-1.0-SNAPSHOT-jar-with-dependencies.jar hu.elte.szhor.generator.Application --output "${OUTPUT_FILE}" --size "${SIZE}"
