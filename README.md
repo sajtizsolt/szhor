@@ -1,12 +1,12 @@
 # Simulation of Fast Uniform Dispersion of a Crash-prone Swarm
 
-This program simulates the fast uniform dispersion of a crash-prone swarm. It's absolutely fantastic.
+This program simulates the fast uniform dispersion of a crash-prone swarm, based on the paper by Michael Amir and Alfred M. Bruckstein ([RSS 2020](https://www.roboticsproceedings.org/rss16/p017.pdf)). It's absolutely fantastic.
 
 ## Dependencies
 
 + Git
-+ Maven
-+ Java (SDK 14)
++ Maven (or use included `./mvnw`)
++ Java (SDK 25)
 
 ## How to run
 
@@ -17,8 +17,8 @@ Arguments specified:
 + ```<output-path>``` Path to the output file where results are expected.
 + ```<number-of-sources>``` Number of source nodes - integer greater or equal than 1.
 + ```<crash-chance>``` The chance of a robot crashing - real number between 0 and 1.
-+ ```<number-of-simulations>``` Number of simulations - integer greater or equal than 0.
-+ ```<dimensions>``` Size of the maze - integer greater or equal than 1.
++ ```<number-of-simulations>``` Number of simulations (optional, default 1) - integer greater or equal than 1.
++ ```<dimensions>``` Size of the maze - integer greater or equal than 2.
 + ```<thread-wait>``` Speed of the robots and display - integer recommended between 10 and 500.
 
 ### Simulator with visual representation
@@ -32,7 +32,7 @@ This component shows a beautiful visual representation of the fast uniform dispe
 ### Simulator WITHOUT visual representation
 
 ```sh
-./generate-results <input-path> <output-path> <number-of-sources> <crash-chance> <number-of-simulations>
+./generate-results <input-path> <output-path> <number-of-sources> <crash-chance> [number-of-simulations]
 ```
 
 ### Maze generator
