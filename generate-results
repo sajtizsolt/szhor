@@ -2,21 +2,49 @@
 #
 # Generates test results based on given parameters.
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$#" -lt 4 ]; then
+  echo "Usage: $0 <input-maze-file> <output-results-csv> <number-of-sources> <crash-chance> [number-of-simulations]"
+  echo "Example: $0 szhor-simulator/src/main/resources/figure1.maze results.csv 2 0.05 10"
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
 # Globals
 readonly INPUT_FILE="$1"
 readonly OUTPUT_FILE="$2"
 readonly SOURCE_NUMBER="$3"
 readonly CHANCE_OF_CRASH="$4"
-readonly SIMULATION_COUNT="$5"
+readonly SIMULATION_COUNT="${5:-1}"
 
-# Clean and build project
-mvn clean install
+JAR_FILE="szhor-simulator/target/szhor-simulator-1.0-SNAPSHOT-jar-with-dependencies.jar"
 
-# Run project SIMULATION_COUNT times
-counter=1
-while [ $counter -le "${SIMULATION_COUNT}" ]
-do
-  echo "[$(date)]: Simulation started with id #${counter}"
-  java -cp szhor-simulator/target/szhor-simulator-1.0-SNAPSHOT-jar-with-dependencies.jar hu.elte.szhor.simulator.Application --input "${INPUT_FILE}" --output "${OUTPUT_FILE}" --number-of-sources "${SOURCE_NUMBER}" --chance-of-crash "${CHANCE_OF_CRASH}"
-  ((counter++))
-done
+# Build project if JAR is missing
+if [ ! -f "${JAR_FILE}" ]; then
+  if [ -x "./mvnw" ]; then
+    ./mvnw package -DskipTests
+  elif command -v mvn >/dev/null 2>&1; then
+    mvn package -DskipTests
+  else
+    echo "Error: Neither ./mvnw nor mvn is available to build ${JAR_FILE}." >&2
+    exit 1
+  fi
+fi
+
+if [ ! -f "${JAR_FILE}" ]; then
+  echo "Error: Failed to build ${JAR_FILE}." >&2
+  exit 1
+fi
+
+# Run in-process batch simulation with Java 25 Virtual Threads
+echo "[$(date)]: Running ${SIMULATION_COUNT} simulation(s) in parallel..."
+java -jar "${JAR_FILE}" --input "${INPUT_FILE}" --output "${OUTPUT_FILE}" --number-of-sources "${SOURCE_NUMBER}" --chance-of-crash "${CHANCE_OF_CRASH}" --simulations "${SIMULATION_COUNT}"
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+  echo "[$(date)]: Simulations completed. Results written to ${OUTPUT_FILE}."
+else
+  echo "[$(date)]: Simulation failed with exit code ${STATUS}." >&2
+  exit $STATUS
+fi

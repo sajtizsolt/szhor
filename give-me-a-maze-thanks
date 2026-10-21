@@ -2,12 +2,38 @@
 #
 # Generates a maze. That's all.
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$#" -lt 2 ]; then
+  echo "Usage: $0 <output-file> <size>"
+  echo "Example: $0 maze.maze 8"
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
 # Globals
 readonly OUTPUT_FILE="$1"
 readonly SIZE="$2"
 
-# Clean and build project
-mvn clean install
+JAR_FILE="szhor-maze-generator/target/szhor-maze-generator-1.0-SNAPSHOT-jar-with-dependencies.jar"
+
+# Build project if JAR is missing
+if [ ! -f "${JAR_FILE}" ]; then
+  if [ -x "./mvnw" ]; then
+    ./mvnw package -DskipTests
+  elif command -v mvn >/dev/null 2>&1; then
+    mvn package -DskipTests
+  else
+    echo "Error: Neither ./mvnw nor mvn is available to build ${JAR_FILE}." >&2
+    exit 1
+  fi
+fi
+
+if [ ! -f "${JAR_FILE}" ]; then
+  echo "Error: Failed to build ${JAR_FILE}." >&2
+  exit 1
+fi
 
 # Run project
-java -cp szhor-maze-generator/target/szhor-maze-generator-1.0-SNAPSHOT-jar-with-dependencies.jar hu.elte.szhor.generator.Application --output "${OUTPUT_FILE}" --size "${SIZE}"
+exec java -jar "${JAR_FILE}" --output "${OUTPUT_FILE}" --size "${SIZE}"

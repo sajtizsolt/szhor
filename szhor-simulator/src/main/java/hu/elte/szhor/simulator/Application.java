@@ -1,47 +1,56 @@
 package hu.elte.szhor.simulator;
 
-import hu.elte.szhor.core.model.Graph;
-import hu.elte.szhor.core.model.Robot;
 import hu.elte.szhor.core.model.util.GraphBuilder;
-import hu.elte.szhor.core.model.util.RobotState;
 import hu.elte.szhor.core.util.ArgumentHandler;
 import hu.elte.szhor.core.util.Statistics;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 public class Application {
 
     public static void main(final String[] arguments) throws IOException {
-        ArgumentHandler.validate(arguments);
+        if (ArgumentHandler.hasHelpFlag(arguments)) {
+            ArgumentHandler.printSimulationHelp();
+            return;
+        }
 
-        final var graph = GraphBuilder.fromFile(ArgumentHandler.getInputFile(), ArgumentHandler.getNumberOfSources());
+        final var config = ArgumentHandler.parseSimulationConfig(arguments);
 
-        startSimulation(graph);
+        if (config.simulations() <= 1) {
+            final var graph = GraphBuilder.fromFile(config.inputFile(), config.numberOfSources());
+            final var simulation = new Simulation(graph, config.chanceOfCrash());
+            final var stats = simulation.run();
+            stats.saveToFile(config.outputFile());
+            return;
+        }
 
-        Statistics.saveToFile(ArgumentHandler.getOutputFile());
-    }
+        // Run batch simulations concurrently using Java 25 Virtual Threads
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            final List<Callable<Statistics>> tasks = IntStream.range(0, config.simulations())
+                .mapToObj(i -> (Callable<Statistics>) () -> {
+                    var graph = GraphBuilder.fromFile(config.inputFile(), config.numberOfSources());
+                    return new Simulation(graph, config.chanceOfCrash()).run();
+                })
+                .toList();
 
-    private static void startSimulation(final Graph graph) {
-        final var activeRobots = new LinkedList<Robot>();
-        Statistics.executionTime = 0;
-        while (!graph.isEveryNodeOccupied()) {
-            for (var robot : activeRobots) {
-                robot.action();
+            var futures = executor.invokeAll(tasks);
+            var results = new ArrayList<Statistics>(config.simulations());
+            for (var future : futures) {
+                results.add(future.get());
             }
-
-            activeRobots.removeIf(
-                robot -> robot.getState().equals(RobotState.SETTLED) || robot.getState().equals(RobotState.CRASHED)
-            );
-
-            for (var sourceNode : graph.getSourceNodes()) {
-                if (sourceNode.getMobileRobot() == null) {
-                    var newRobot = new Robot(graph, sourceNode, ArgumentHandler.getChanceOfCrash());
-                    activeRobots.add(newRobot);
-                    Statistics.numberOfRobots++;
-                }
-            }
-            ++Statistics.executionTime;
+            Statistics.saveAllToFile(config.outputFile(), results);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Simulation execution was interrupted", e);
+        } catch (ExecutionException e) {
+            var cause = e.getCause() != null ? e.getCause() : e;
+            throw new RuntimeException("Simulation execution failed: " + cause.getMessage(), cause);
         }
     }
 }

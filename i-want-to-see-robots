@@ -2,14 +2,40 @@
 #
 # Runs visual representation. Opens a window.
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$#" -lt 4 ]; then
+  echo "Usage: $0 <input-maze-file> <number-of-sources> <crash-chance> <thread-wait-ms>"
+  echo "Example: $0 szhor-simulator/src/main/resources/figure1.maze 2 0.0 50"
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
 # Globals
 readonly INPUT_FILE="$1"
 readonly SOURCE_NUMBER="$2"
 readonly CHANCE_OF_CRASH="$3"
 readonly THREAD_TIME="$4"
 
-# Clean and build project
-mvn clean install
+JAR_FILE="szhor-visualizer/target/szhor-visualizer-1.0-SNAPSHOT-jar-with-dependencies.jar"
+
+# Build project if JAR is missing
+if [ ! -f "${JAR_FILE}" ]; then
+  if [ -x "./mvnw" ]; then
+    ./mvnw package -DskipTests
+  elif command -v mvn >/dev/null 2>&1; then
+    mvn package -DskipTests
+  else
+    echo "Error: Neither ./mvnw nor mvn is available to build ${JAR_FILE}." >&2
+    exit 1
+  fi
+fi
+
+if [ ! -f "${JAR_FILE}" ]; then
+  echo "Error: Failed to build ${JAR_FILE}." >&2
+  exit 1
+fi
 
 # Run project
-java -cp szhor-visualizer/target/szhor-visualizer-1.0-SNAPSHOT-jar-with-dependencies.jar hu.elte.szhor.visualizer.Application --input "${INPUT_FILE}" --number-of-sources "${SOURCE_NUMBER}" --chance-of-crash "${CHANCE_OF_CRASH}" --thread-wait "${THREAD_TIME}"
+exec java -jar "${JAR_FILE}" --input "${INPUT_FILE}" --number-of-sources "${SOURCE_NUMBER}" --chance-of-crash "${CHANCE_OF_CRASH}" --thread-wait "${THREAD_TIME}"
