@@ -1,10 +1,6 @@
 package hu.elte.szhor.core.model;
 
-import java.util.Objects;
-
 public class Node {
-
-    private static int currentId = 0;
 
     private final int id;
     private final int x;
@@ -13,34 +9,34 @@ public class Node {
     private Robot mobileRobot;
     private Robot settledRobot;
 
-    private Node(final int id, final int x, final int y) {
+    public Node(final int id, final int x, final int y) {
         this.id = id;
         this.x = x;
         this.y = y;
     }
 
     public Node(final int x, final int y) {
-        this.id = currentId++;
-        this.x = x;
-        this.y = y;
+        this(0, x, y);
     }
 
     public static Node create(final int x, final int y) {
-        return new Node(-1, x, y);
+        return new Node(x, y);
     }
 
     public String getIdAsString() {
-        return "" + this.id;
+        return Integer.toString(this.id);
     }
 
     @Override
-    public boolean equals(Object object) {
+    public boolean equals(final Object object) {
         if (object == this) return true;
-        if (!(object instanceof Node)) return false;
+        if (!(object instanceof Node other)) return false;
+        return this.x == other.x && this.y == other.y;
+    }
 
-        var other = (Node) object;
-        return Objects.equals(this.x, other.x)
-                && Objects.equals(this.y, other.y);
+    @Override
+    public int hashCode() {
+        return 31 * this.x + this.y;
     }
 
     @Override

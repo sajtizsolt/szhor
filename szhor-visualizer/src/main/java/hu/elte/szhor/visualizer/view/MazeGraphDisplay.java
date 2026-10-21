@@ -1,14 +1,27 @@
 package hu.elte.szhor.visualizer.view;
 
 import hu.elte.szhor.core.model.Node;
-
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class MazeGraphDisplay {
+
+    private static final String STYLESHEET = """
+        node {
+            shape: box;
+            size: 20px;
+            text-alignment: under;
+            text-size: 12px;
+            fill-mode: gradient-diagonal1;
+            stroke-mode: dashes;
+        }
+        edge {
+            shape: blob;
+            fill-color: rgb(75, 75, 75);
+        }
+        """;
 
     private final Graph graph;
 
@@ -17,6 +30,7 @@ public class MazeGraphDisplay {
         System.setProperty("org.graphstream.ui", "swing");
         this.graph.setAttribute("ui.quality");
         this.graph.setAttribute("ui.antialias");
+        this.graph.setAttribute("ui.stylesheet", STYLESHEET);
     }
 
     public void display() {
@@ -27,38 +41,44 @@ public class MazeGraphDisplay {
         this.graph.addNode(node.getIdAsString());
         this.setColor(node, Color.BLACK);
         this.setLabel(node);
-        this.formatNode(node);
     }
 
     public void addEdge(final String id, final Node from, final Node to) {
-        var displayEdge = this.graph.addEdge(String.valueOf(id), from.getIdAsString(), to.getIdAsString());
-        this.formatEdge(displayEdge);
+        this.graph.addEdge(id, from.getIdAsString(), to.getIdAsString());
     }
 
     public void setColor(final Node node, final Color color) {
-        this.graph.getNode(node.getIdAsString()).setAttribute("ui.style", "fill-color: rgb(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "), rgb(255,255,255);");
+        var displayNode = this.graph.getNode(node.getIdAsString());
+        if (displayNode != null) {
+            displayNode.setAttribute("ui.style", "fill-color: rgb(" + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + "), rgb(255,255,255);");
+        }
     }
 
     public void setLabel(final Node node) {
-        this.graph.getNode(node.getIdAsString()).setAttribute("ui.label", node.toString());
+        var displayNode = this.graph.getNode(node.getIdAsString());
+        if (displayNode != null) {
+            displayNode.setAttribute("ui.label", node.toString());
+        }
     }
 
     public void refreshNode(final Node node) {
+        this.refreshNode(node, false);
+    }
+
+    public void refreshNode(final Node node, final boolean isSource) {
         if (node.getSettledRobot() != null && node.getMobileRobot() == null) {
             this.setColor(node, Color.GREEN);
-        }
-        else  if (node.getSettledRobot() != null && node.getMobileRobot() != null) {
+        } else if (node.getSettledRobot() != null && node.getMobileRobot() != null) {
             this.setColor(node, Color.RED);
+        } else if (node.getSettledRobot() == null && node.getMobileRobot() != null) {
+            this.setColor(node, Color.ORANGE);
+        } else {
+            this.setColor(node, isSource ? Color.BLUE : Color.BLACK);
         }
         this.setLabel(node);
     }
 
-    private void formatNode(final Node node) {
-        var displayNode = this.graph.getNode(node.getIdAsString());
-        displayNode.setAttribute("ui.style", "shape: box; size: 20px; stroke-mode: plain; text-alignment: under; text-size: 12px; fill-mode: gradient-diagonal1; stroke-mode: dashes;");
-    }
-
-    private void formatEdge(final Edge edge) {
-        edge.setAttribute("ui.style", "shape: blob; fill-color: rgb(75,75,75);");
+    public Graph getGraph() {
+        return this.graph;
     }
 }

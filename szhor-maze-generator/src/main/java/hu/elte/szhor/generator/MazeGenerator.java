@@ -2,127 +2,159 @@ package hu.elte.szhor.generator;
 
 import hu.elte.szhor.generator.util.Coordinate;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.LinkedList;
-import java.util.Random;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
-public class MazeGenerator {
+public final class MazeGenerator {
 
-    private static final Random RANDOM_GENERATOR = new Random();
-    private static int graphSize;
+    private MazeGenerator() {
+    }
 
     public static String[][] generate(final int size) {
-        graphSize = size;
+        if (size < 2) {
+            throw new IllegalArgumentException("Maze size must be at least 2, but was: " + size);
+        }
         var nodeCount = getRandomNumber(4 * size - 4, size * size);
 
-        var availableCoordinates = new LinkedList<Coordinate>();
-        var nodeCoordinates = new LinkedList<Coordinate>();
+        var availableCoordinates = new ArrayList<Coordinate>();
+        var borderCoordinates = new ArrayList<Coordinate>();
+        var coordinateSet = new HashSet<Coordinate>();
+        var connectedSet = new HashSet<Coordinate>();
 
-        for (var i = 0; i < graphSize ; ++i) {
-            for (var j = 0; j < graphSize; ++j) {
-                if (i == 0 || j == 0 || i == graphSize - 1 || j == graphSize - 1) {
-                    nodeCoordinates.add(new Coordinate(i, j));
+        for (var i = 0; i < size; ++i) {
+            for (var j = 0; j < size; ++j) {
+                var coord = new Coordinate(i, j);
+                if (i == 0 || j == 0 || i == size - 1 || j == size - 1) {
+                    borderCoordinates.add(coord);
+                    coordinateSet.add(coord);
+                    connectedSet.add(coord);
                 } else {
-                    availableCoordinates.add(new Coordinate(i, j));
+                    availableCoordinates.add(coord);
                 }
             }
         }
 
-        var difference = nodeCount - nodeCoordinates.size();
-        for (var i = 0; i < difference; ++i) {
-            var generatedNodeCoordinate = getRandomNumber(0, availableCoordinates.size() - 1);
-            nodeCoordinates.add(availableCoordinates.get(generatedNodeCoordinate));
-            availableCoordinates.remove(generatedNodeCoordinate);
+        var interiorCoordinates = new ArrayList<Coordinate>();
+        var difference = nodeCount - borderCoordinates.size();
+        if (difference > 0) {
+            Collections.shuffle(availableCoordinates);
+            for (var i = 0; i < difference; ++i) {
+                var coord = availableCoordinates.get(i);
+                interiorCoordinates.add(coord);
+                coordinateSet.add(coord);
+            }
         }
 
-        for (var i = 0; i < nodeCount; ++i) {
-            var currentRow = nodeCoordinates.get(i).rowIndex;
-            var currentColumn = nodeCoordinates.get(i).columnIndex;
+        for (var current : interiorCoordinates) {
+            if (connectedSet.contains(current)) {
+                continue;
+            }
+            if (isAdjacentTo(current, connectedSet)) {
+                connectedSet.add(current);
+                continue;
+            }
 
-            if (isIsolated(nodeCoordinates.get(i), nodeCoordinates)) {
-                var nearestNeighbour = getNearestNeighbour(nodeCoordinates.get(i), nodeCoordinates);
-                if (nearestNeighbour.columnIndex == currentColumn && nearestNeighbour.rowIndex < currentRow) {
-                    for (var j = currentRow - 1; j > nearestNeighbour.rowIndex; --j) {
-                        nodeCoordinates.add(new Coordinate(j, currentColumn));
-                        availableCoordinates.remove(new Coordinate(j, currentColumn));
-                    }
-                } else if (nearestNeighbour.columnIndex == currentColumn && nearestNeighbour.rowIndex > currentRow) {
-                    for (var j = currentRow + 1; j < nearestNeighbour.rowIndex; ++j) {
-                        nodeCoordinates.add(new Coordinate(j, currentColumn));
-                        availableCoordinates.remove(new Coordinate(j, currentColumn));
-                    }
-                } else if (nearestNeighbour.rowIndex == currentRow && nearestNeighbour.columnIndex < currentColumn) {
-                    for (var j = currentColumn - 1; j > nearestNeighbour.columnIndex; --j) {
-                        nodeCoordinates.add(new Coordinate(currentRow, j));
-                        availableCoordinates.remove(new Coordinate(currentRow, j));
-                    }
-                } else if (nearestNeighbour.rowIndex == currentRow && nearestNeighbour.columnIndex > currentColumn) {
-                    for (var j = currentColumn + 1; j < nearestNeighbour.columnIndex; ++j) {
-                        nodeCoordinates.add(new Coordinate(currentRow, j));
-                        availableCoordinates.remove(new Coordinate(currentRow, j));
-                    }
+            var nearest = getNearestNeighbour(current, connectedSet, size);
+            var currentRow = current.rowIndex();
+            var currentColumn = current.columnIndex();
+
+            if (nearest.columnIndex() == currentColumn && nearest.rowIndex() < currentRow) {
+                for (var j = currentRow; j > nearest.rowIndex(); --j) {
+                    var c = new Coordinate(j, currentColumn);
+                    coordinateSet.add(c);
+                    connectedSet.add(c);
+                }
+            } else if (nearest.columnIndex() == currentColumn && nearest.rowIndex() > currentRow) {
+                for (var j = currentRow; j < nearest.rowIndex(); ++j) {
+                    var c = new Coordinate(j, currentColumn);
+                    coordinateSet.add(c);
+                    connectedSet.add(c);
+                }
+            } else if (nearest.rowIndex() == currentRow && nearest.columnIndex() < currentColumn) {
+                for (var j = currentColumn; j > nearest.columnIndex(); --j) {
+                    var c = new Coordinate(currentRow, j);
+                    coordinateSet.add(c);
+                    connectedSet.add(c);
+                }
+            } else if (nearest.rowIndex() == currentRow && nearest.columnIndex() > currentColumn) {
+                for (var j = currentColumn; j < nearest.columnIndex(); ++j) {
+                    var c = new Coordinate(currentRow, j);
+                    coordinateSet.add(c);
+                    connectedSet.add(c);
                 }
             }
         }
 
-        var maze = new String[graphSize][graphSize];
-        for (var i = 0; i < graphSize; ++i) {
-            for (var j = 0; j < graphSize; ++j) {
-                maze[i][j] = nodeCoordinates.contains(new Coordinate(i, j)) ? "*" : "#";
+        var maze = new String[size][size];
+        for (var i = 0; i < size; ++i) {
+            for (var j = 0; j < size; ++j) {
+                maze[i][j] = coordinateSet.contains(new Coordinate(i, j)) ? "*" : "#";
             }
         }
 
         return maze;
     }
 
-    public static void saveToFile(final String filepath, final String[][] maze) throws FileNotFoundException {
+    public static void saveToFile(final String filepath, final String[][] maze) throws IOException {
         var sb = new StringBuilder();
-        for (var strings : maze) {
-            for (var string : strings) {
-                sb.append(string);
+        for (var row : maze) {
+            for (var cell : row) {
+                sb.append(cell);
             }
             sb.append("\n");
         }
-
-        try (var writer = new PrintWriter(new File(filepath))) {
-            writer.write(sb.toString());
-            writer.flush();
+        var path = Path.of(filepath);
+        if (path.getParent() != null) {
+            Files.createDirectories(path.getParent());
         }
+        Files.writeString(path, sb.toString(), StandardCharsets.UTF_8);
     }
 
     private static int getRandomNumber(final int origin, final int bound) {
-        return RANDOM_GENERATOR.nextInt(bound - origin + 1) + origin;
+        return ThreadLocalRandom.current().nextInt(origin, bound + 1);
     }
 
-    private static boolean isIsolated(final Coordinate coordinate, final LinkedList<Coordinate> coordinates) {
-        return !(
-            coordinates.contains(new Coordinate(coordinate.rowIndex - 1, coordinate.columnIndex)) ||
-            coordinates.contains(new Coordinate(coordinate.rowIndex + 1, coordinate.columnIndex)) ||
-            coordinates.contains(new Coordinate(coordinate.rowIndex, coordinate.columnIndex - 1)) ||
-            coordinates.contains(new Coordinate(coordinate.rowIndex, coordinate.columnIndex + 1))
-        );
+    private static boolean isAdjacentTo(final Coordinate coordinate, final Set<Coordinate> coordinates) {
+        return coordinates.contains(new Coordinate(coordinate.rowIndex() - 1, coordinate.columnIndex()))
+            || coordinates.contains(new Coordinate(coordinate.rowIndex() + 1, coordinate.columnIndex()))
+            || coordinates.contains(new Coordinate(coordinate.rowIndex(), coordinate.columnIndex() - 1))
+            || coordinates.contains(new Coordinate(coordinate.rowIndex(), coordinate.columnIndex() + 1));
     }
 
-    private static Coordinate getNearestNeighbour(final Coordinate coordinate, final LinkedList<Coordinate> coordinates) {
-        var row = coordinate.rowIndex;
-        var column = coordinate.columnIndex;
-        var nearestNeighbour = new Coordinate(row, column);
+    private static Coordinate getNearestNeighbour(final Coordinate coordinate, final Set<Coordinate> coordinates, final int size) {
+        final int row = coordinate.rowIndex();
+        final int column = coordinate.columnIndex();
+        Coordinate nearest = null;
+        int minDistance = Integer.MAX_VALUE;
 
         // Nearest neighbour from upside
         for (int i = row - 1; i >= 0; --i) {
-            if (coordinates.contains(new Coordinate(i, column))) {
-                nearestNeighbour.rowIndex = i;
+            var c = new Coordinate(i, column);
+            if (coordinates.contains(c)) {
+                int dist = row - i;
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    nearest = c;
+                }
                 break;
             }
         }
 
         // Nearest neighbour from downside
-        for (int i = row + 1; i < graphSize; ++i) {
-            if (coordinates.contains(new Coordinate(i, column))) {
-                if (Math.abs(row - nearestNeighbour.rowIndex) > Math.abs(row - i)) {
-                    nearestNeighbour.rowIndex = i;
+        for (int i = row + 1; i < size; ++i) {
+            var c = new Coordinate(i, column);
+            if (coordinates.contains(c)) {
+                int dist = i - row;
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    nearest = c;
                 }
                 break;
             }
@@ -130,28 +162,30 @@ public class MazeGenerator {
 
         // Nearest neighbour to the left
         for (int j = column - 1; j >= 0; --j) {
-            if (coordinates.contains(new Coordinate(row, j))) {
-                if (Math.abs(row - nearestNeighbour.rowIndex) > Math.abs(column - j)) {
-                    nearestNeighbour.columnIndex = j;
-                    nearestNeighbour.rowIndex = row;
+            var c = new Coordinate(row, j);
+            if (coordinates.contains(c)) {
+                int dist = column - j;
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    nearest = c;
                 }
                 break;
             }
         }
 
         // Nearest neighbour to the right
-        for (int j = column + 1; j < graphSize; ++j) {
-            if (coordinates.contains(new Coordinate(row, j))) {
-                if (nearestNeighbour.rowIndex != row && Math.abs(row - nearestNeighbour.rowIndex) > Math.abs(column - j)) {
-                    nearestNeighbour.columnIndex = j;
-                    nearestNeighbour.rowIndex = row;
-                } else if (Math.abs(column - nearestNeighbour.columnIndex) > Math.abs(column - j)) {
-                    nearestNeighbour.columnIndex = j;
+        for (int j = column + 1; j < size; ++j) {
+            var c = new Coordinate(row, j);
+            if (coordinates.contains(c)) {
+                int dist = j - column;
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    nearest = c;
                 }
                 break;
             }
         }
 
-        return nearestNeighbour;
+        return nearest != null ? nearest : coordinate;
     }
 }
